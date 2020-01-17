@@ -1,12 +1,14 @@
 import React, { Component } from 'react';
+import { withRouter } from "react-router-dom";
 import moment from "moment"
 import memoryUtils from '../../utils/memoryUtils'
 import { reqWeather } from "../../api"
+import menuList from '../../config/menuConfig';
 import "./index.less"
 import logo from "../../assets/images/moji.jpg"
 
 
-export default class Header extends Component {
+class Header extends Component {
 
   state = {
     currentTime: moment(parseInt(Date.now())).format('YYYY年MM月DD日 HH:mm:ss'),
@@ -22,15 +24,26 @@ export default class Header extends Component {
   }
 
   getWeather = async () => {
-    console.log('wwwwwwww');
-    console.log('state');
-    console.log(this.state);
-    console.log(reqWeather("长沙"));
     const { temp, weather } = await reqWeather("长沙");
     // 获取数据之后，更新状态
     this.setState({ temp, weather });
-    console.log('state');
-    console.log(this.state);
+  }
+
+  getTitle = () => {
+    // 得到当前请求路径
+    const path = this.props.location.pathname;
+    let title;
+    menuList.forEach(item => {
+      if (item.key === path) {
+        title = item.title;
+      } else if (item.children) {
+        const cItem = item.children.find(cItem => cItem.key === path);
+        if (cItem) {
+          title = cItem.title;
+        }
+      }
+    })
+    return title;
   }
 
   /* 第一次render()之后执行一次
@@ -45,6 +58,7 @@ export default class Header extends Component {
   render() {
     const { currentTime, temp, weather } = this.state;
     const username = memoryUtils.user.username;
+    const title = this.getTitle();
     return (
       <div className="header">
         <div className="header-top">
@@ -52,7 +66,7 @@ export default class Header extends Component {
           <a href="javascript">退出</a>
         </div>
         <div className="header-bottom">
-          <div className="header-bottom-left">首页</div>
+          <div className="header-bottom-left">{title}</div>
           <div className="header-bottom-right">
             <span>{currentTime}</span>
             <img src={logo} alt="weather" />
@@ -65,3 +79,5 @@ export default class Header extends Component {
     );
   }
 }
+
+export default withRouter(Header)
